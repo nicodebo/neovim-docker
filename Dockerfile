@@ -2,7 +2,7 @@ FROM alpine:latest as builder
 
 WORKDIR /mnt/build/ctags
 
-RUN apk update && apk add \
+RUN apk --no-cache add \
 	git \
 	xfce4-dev-tools \
 	build-base
@@ -38,12 +38,12 @@ ENV \
 
 COPY --from=builder /usr/local/bin/ctags /usr/local/bin
 
-RUN apk update && apk add \
+RUN apk --no-cache add \
 	# needed by neovim :CheckHealth to fetch info
 	curl \
 	# needed to change uid and gid on running container
 	shadow \
-	# needed to install apk packages
+	# needed to install apk packages as neovim user on the container
 	sudo \
 	# needed to switch user
         su-exec \
