@@ -38,43 +38,42 @@ ENV \
 
 COPY --from=builder /usr/local/bin/ctags /usr/local/bin
 
-RUN apk --no-cache add \
-	# needed by neovim :CheckHealth to fetch info
+RUN \
+	# install packages
+	apk --no-cache add \
+		# needed by neovim :CheckHealth to fetch info
 	curl \
-	# needed to change uid and gid on running container
+		# needed to change uid and gid on running container
 	shadow \
-	# needed to install apk packages as neovim user on the container
+		# needed to install apk packages as neovim user on the container
 	sudo \
-	# needed to switch user
+		# needed to switch user
         su-exec \
-	# needed for neovim python3 support
+		# needed for neovim python3 support
 	python3 \
-	python3-dev \
-	# needed for pipsi
+		# needed for pipsi
 	py3-virtualenv \
-	# needed to compile python greenlet
+		# text editor
+        neovim \
+        neovim-doc \
+	# install build packages
+	&& apk --no-cache add --virtual build-dependencies \
+	python3-dev \
 	gcc \
 	musl-dev \
-	# needed to clone git repo
 	git \
-        neovim \
-        neovim-doc
-
-RUN \
-	addgroup "${GNAME}" \
+	# create user
+	&& addgroup "${GNAME}" \
 	&& adduser -D -G "${GNAME}" -g "" -s "${SHELL}" "${UNAME}" \
-        && echo "${UNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-RUN \
-	sudo -u neovim python3 -m venv "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}" \
-	&& "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}/bin/pip" install neovim
-
-RUN \
-	curl https://raw.githubusercontent.com/mitsuhiko/pipsi/master/get-pipsi.py | sudo -u neovim python3 \
-	&& sudo -u neovim pipsi install python-language-server
-
-RUN \
-	mkdir -p "${NVIM_PCK}/common/start" "${NVIM_PCK}/filetype/start" "${NVIM_PCK}/colors/opt" \
+        && echo "${UNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
+	# install neovim python3 provider
+	&& sudo -u neovim python3 -m venv "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}" \
+	&& "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}/bin/pip" install neovim \
+	# install pipsi and python language server
+	&& curl https://raw.githubusercontent.com/mitsuhiko/pipsi/master/get-pipsi.py | sudo -u neovim python3 \
+	&& sudo -u neovim pipsi install python-language-server \
+	# install plugins
+	&& mkdir -p "${NVIM_PCK}/common/start" "${NVIM_PCK}/filetype/start" "${NVIM_PCK}/colors/opt" \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/tpope/vim-commentary \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/tpope/vim-surround \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/tpope/vim-obsession \
@@ -86,7 +85,9 @@ RUN \
 	&& git -C "${NVIM_PCK}/colors/opt" clone --depth 1 https://github.com/fxn/vim-monochrome \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/autozimu/LanguageClient-neovim \
 	&& cd "${NVIM_PCK}/common/start/LanguageClient-neovim/" && sh install.sh \
-	&& chown -R neovim:neovim /home/neovim/.local
+	&& chown -R neovim:neovim /home/neovim/.local \
+	# remove build packages
+	&& apk del build-dependencies
 
 COPY entrypoint.sh /usr/local/bin/
 
@@ -94,5 +95,3 @@ VOLUME "${WORKSPACE}"
 VOLUME "${NVIM_CONFIG}"
 
 ENTRYPOINT ["sh", "/usr/local/bin/entrypoint.sh"]
-
-# TODO: Remove unused packages in the final image
