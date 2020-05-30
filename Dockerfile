@@ -68,7 +68,7 @@ RUN \
         && echo "${UNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
 	# install neovim python3 provider
 	&& sudo -u neovim python3 -m venv "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}" \
-	&& "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}/bin/pip" install neovim \
+	&& "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}/bin/pip" install pynvim \
 	# install pipsi and python language server
 	&& curl https://raw.githubusercontent.com/mitsuhiko/pipsi/master/get-pipsi.py | sudo -u neovim python3 \
 	&& sudo -u neovim pipsi install python-language-server \
