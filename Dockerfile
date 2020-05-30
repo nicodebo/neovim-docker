@@ -28,7 +28,7 @@ ENV \
         GID="1000" \
         UNAME="neovim" \
         GNAME="neovim" \
-        SHELL="/bin/sh" \
+        SHELL="/bin/bash" \
         WORKSPACE="/mnt/workspace" \
 	NVIM_CONFIG="/home/neovim/.config/nvim" \
 	NVIM_PCK="/home/neovim/.local/share/nvim/site/pack" \
@@ -56,6 +56,9 @@ RUN \
 		# text editor
         neovim \
         neovim-doc \
+	fzf \
+	bash \
+		# needed by fzf because the default shell does not support fzf
 	# install build packages
 	&& apk --no-cache add --virtual build-dependencies \
 	python3-dev \
@@ -75,6 +78,7 @@ RUN \
 	# install plugins
 	&& mkdir -p "${NVIM_PCK}/common/start" "${NVIM_PCK}/filetype/start" "${NVIM_PCK}/colors/opt" \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/tpope/vim-commentary \
+	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/junegunn/fzf.vim \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/tpope/vim-surround \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/tpope/vim-obsession \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/yuttie/comfortable-motion.vim \
