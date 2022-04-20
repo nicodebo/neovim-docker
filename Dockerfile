@@ -57,8 +57,8 @@ RUN \
         neovim \
         neovim-doc \
 	fzf \
-	bash \
 		# needed by fzf because the default shell does not support fzf
+	bash \
 	# install build packages
 	&& apk --no-cache add --virtual build-dependencies \
 	python3-dev \
@@ -70,11 +70,11 @@ RUN \
 	&& adduser -D -G "${GNAME}" -g "" -s "${SHELL}" "${UNAME}" \
         && echo "${UNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
 	# install neovim python3 provider
-	&& sudo -u neovim python3 -m venv "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}" \
+	&& sudo -u ${UNAME} python3 -m venv "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}" \
 	&& "${ENV_DIR}/${NVIM_PROVIDER_PYLIB}/bin/pip" install pynvim \
 	# install pipsi and python language server
-	&& curl https://raw.githubusercontent.com/mitsuhiko/pipsi/master/get-pipsi.py | sudo -u neovim python3 \
-	&& sudo -u neovim pipsi install python-language-server \
+	&& curl https://raw.githubusercontent.com/mitsuhiko/pipsi/master/get-pipsi.py | sudo -u ${UNAME} python3 \
+	&& sudo -u ${UNAME} pipsi install python-language-server \
 	# install plugins
 	&& mkdir -p "${NVIM_PCK}/common/start" "${NVIM_PCK}/filetype/start" "${NVIM_PCK}/colors/opt" \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/tpope/vim-commentary \
@@ -90,7 +90,7 @@ RUN \
 	&& git -C "${NVIM_PCK}/colors/opt" clone --depth 1 https://github.com/fxn/vim-monochrome \
 	&& git -C "${NVIM_PCK}/common/start" clone --depth 1 https://github.com/autozimu/LanguageClient-neovim \
 	&& cd "${NVIM_PCK}/common/start/LanguageClient-neovim/" && sh install.sh \
-	&& chown -R neovim:neovim /home/neovim/.local \
+	&& chown -R ${UNAME}:${GNAME} /home/neovim/.local \
 	# remove build packages
 	&& apk del build-dependencies
 
